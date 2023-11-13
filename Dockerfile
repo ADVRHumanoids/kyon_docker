@@ -8,8 +8,8 @@ FROM ros:${ROS_VERSION}-robot
 ARG ROS_VERSION
 
 # Update package lists and install dependencies
-RUN apt-get update && apt-get install -y sudo build-essential git curl python3-tk python3-pip libjpeg-dev wget
-
+RUN apt-get update && apt-get install -y sudo build-essential  git curl python3-tk python3-pip libjpeg-dev wget
+RUN apt-get install -y libassimp-dev liblapack-dev libblas-dev libyaml-cpp-dev
 # Upgrade pip and install the latest version of NumPy 
 # only required for ROS noetic
 RUN pip3 install --upgrade pip \
@@ -45,52 +45,50 @@ USER user
 WORKDIR /home/user
 ENV PATH="/home/user/.local/bin:${PATH}"
 
-# Install ROS catkin tools
+# set up forest for installation
 RUN sudo pip install hhcm-forest
+RUN mkdir forest_ws
 
+WORKDIR /home/user/forest_ws
+RUN forest init && forest add-recipes git@github.com:ADVRHumanoids/multidof_recipes.git --clone-protocol https
+
+# # install horizon
+RUN forest grow horizon --clone-protocol https -j7
+
+WORKDIR /home/user/
 # update keys and install xbot2
 RUN sudo sh -c 'echo "deb http://xbot.cloud/xbot2/ubuntu/$(lsb_release -sc) /" > /etc/apt/sources.list.d/xbot-latest.list'
 RUN wget -q -O - http://xbot.cloud/xbot2/ubuntu/KEY.gpg | sudo apt-key add -
 RUN sudo apt-get update && sudo apt-get install -y xbot2_desktop_full
 
-# source xbot2 for ROS_PACKAGE_PATH
+# # source xbot2 for ROS_PACKAGE_PATH
 RUN echo ". /opt/xbot/setup.sh" >> ~/.bashrc
 
-# install catkin workspace
+# # install catkin workspace
+WORKDIR /home/user/
 RUN mkdir -p kyon_ws/src
 RUN cd ~/kyon_ws && rosdep update && rosdep install --from-paths src --ignore-src -r -y
 RUN . /opt/ros/${ROS_VERSION}/setup.sh && cd ~/kyon_ws && catkin_make install
 
-# clone all the required packages
+# break cache for re-installation of kyon (to always download the last version)
+ARG CACHE_DATE="date"
+
+# # # clone all the required packages
 WORKDIR /home/user/kyon_ws/src
-RUN git clone https://github.com/ADVRHumanoids/iit-kyon-ros-pkg
-RUN git clone https://github.com/ADVRHumanoids/kyon_controller
-RUN git clone https://github.com/ADVRHumanoids/kyon_codesign
+RUN git clone -b deliverable https://github.com/ADVRHumanoids/kyon_controller
+RUN git clone -b deliverable https://github.com/ADVRHumanoids/kyon_codesign
 
 
-# source workspace for ROS_PACKAGE_PATH
-RUN echo "source ~/kyon_ws/install/setup.bash" > .bashrc
+# # # source workspace for ROS_PACKAGE_PATH
+RUN echo "source ~/kyon_ws/install/setup.bash" >> ~/.bashrc
 
-# break cache for re-installation of casadi (to always download the last version)
-# ARG CACHE_DATE="date"
+# source forest
+RUN echo "source ~/forest_ws/setup.bash" >> ~/.bashrc
+
+
+
+
 # return to workdir
-
-WORKDIR /home/user/
-RUN mkdir ws
-# create a new folder and install forest
-
-RUN cd ~ws && forest init 
-RUN cd ~ws && forest add-recipes git@github.com:ADVRHumanoids/multidof_recipes.git --clone-protcol=https
-
-
-# install horizon
-# RUN mkdir horizon_ws
-
-# WORKDIR /home/user/horizon_ws
-# RUN mkdir src build install
-
-# RUN cd ~/horizon_ws/src && git clone -b receding_horizon https://github.com/ADVRHumanoids/horizon
-# RUN cd ~/horizon_ws/src/horizon && pip3 install -e .
 
 # RUN cd ~/horizon_ws/src && git clone https://github.com/FrancescoRuscelli/phase_manager
 # RUN mkdir cd ../build/phase_manager && cmake ../../src/phase_manager -DCMAKE_INSTALL_PREFIX=/home/user/horizon_ws/install
