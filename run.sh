@@ -3,4 +3,10 @@
 IMAGE=kyon
 NAME=birb
 
-docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix --env=DISPLAY --network="host" --name ${NAME} ${IMAGE} 
+docker run -it --rm \
+            --privileged \
+            -v /dev/input:/dev/input \
+            -v /tmp/.X11-unix:/tmp/.X11-unix \
+            --env=DISPLAY \
+            --name ${NAME} ${IMAGE}
+            # --network="host" \

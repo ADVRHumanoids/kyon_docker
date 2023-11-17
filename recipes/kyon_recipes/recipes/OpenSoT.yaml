@@ -1,0 +1,30 @@
+clone:
+  type: git
+  server: github.com
+  repository: advrhumanoids/OpenSoT.git
+  tag: devel
+  tag_if:
+    stable: v3.2.0
+
+pre_build_if:
+  binary_gen:
+    - rm -rf *.deb
+
+build:
+  type: cmake
+  args_if:
+    test:
+      - -DOPENSOT_COMPILE_TESTS=ON
+
+post_build_if:
+  binary_gen:
+    - make package
+    - cp *.deb {config.binary_dir}
+
+depends: 
+  - XBotInterface
+  - osqp
+  - matlogger2
+  - fcl
+
+
