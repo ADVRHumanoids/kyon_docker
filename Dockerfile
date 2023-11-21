@@ -103,7 +103,6 @@ SHELL ["bash", "-ic"]
 # # install iit-kyon-pkg and dependent packages
 RUN sudo apt-get update
 WORKDIR /home/user/forest_ws
-RUN forest grow iit-kyon-ros-pkg --clone-protocol https -j7
 RUN forest grow realsense_gazebo_description --clone-protocol https -j7
 RUN forest grow iit-dagana-ros-pkg --clone-protocol https -j7
 
@@ -121,6 +120,9 @@ RUN make -j8 install
 ARG CACHE_DATE="date"
 
 # clone all the required packages
+WORKDIR /home/user/forest_ws
+RUN forest grow iit-kyon-ros-pkg --clone-protocol https -j7
+
 WORKDIR /home/user/kyon_ws/src
 RUN git clone -b deliverable https://github.com/robot-21/kyon_controller.git
 RUN git clone -b deliverable https://github.com/robot-21/kyon_codesign.git
