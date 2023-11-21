@@ -122,8 +122,8 @@ ARG CACHE_DATE="date"
 
 # clone all the required packages
 WORKDIR /home/user/kyon_ws/src
-RUN git clone -b deliverable https://github.com/ADVRHumanoids/kyon_controller
-RUN git clone -b deliverable https://github.com/ADVRHumanoids/kyon_codesign
+RUN git clone -b deliverable https://github.com/robot-21/kyon_controller.git
+RUN git clone -b deliverable https://github.com/robot-21/kyon_codesign.git
 
 # return to workdir
 WORKDIR /home/user/kyon_ws
