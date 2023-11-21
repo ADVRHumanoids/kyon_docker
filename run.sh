@@ -3,8 +3,6 @@
 IMAGE=kyon
 NAME=birb
 
-xhost +local:*
-
 docker run -it --rm \
             --privileged \
             --runtime=nvidia --gpus all \
@@ -14,5 +12,3 @@ docker run -it --rm \
             --env=DISPLAY \
             --name ${NAME} ${IMAGE}
             # --network="host" \
-            
-xhost -local:*
